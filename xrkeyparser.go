@@ -57,18 +57,6 @@ type ParseResult struct {
 	VlessXrConfigs []XrayConf       `json:"xrvless,omitzero"`
 }
 
-//type SsXrConfigs struct {
-//	Configs []XrayConf `json:"xrss"`
-//}
-
-//type VlessXrConfigs struct {
-//	Configs []XrayConf `json:"xrvless"`
-//}
-
-//type SsConfigs struct {
-//	Configs []XrSsServerConf `json:"ss"`
-//}
-
 type XrayConf struct {
 	Protocol  string           `json:"protocol"`
 	Settings  any              `json:"settings"` //XrSsServerConf
@@ -276,17 +264,13 @@ func createSsServerConfig(str string) (errstr string) { //, errcode int
 			}
 			conf.Port = i
 		}
-		if config.SsMultipleOutbounds {
-			xrconf := new(XrayConf)
-			xrconf.Protocol = "shadowsocks"
-			servers := new(XrSsServers)
-			servers.SsServers = append(servers.SsServers, *conf)
-			xrconf.Settings = servers
-			xrconf.Tag = config.SsTag + strconv.Itoa(len(xrSsConfigs)+1)
-			xrSsConfigs = append(xrSsConfigs, *xrconf)
-		} else {
-			ssConfigs = append(ssConfigs, *conf)
-		}
+		xrconf := new(XrayConf)
+		xrconf.Protocol = "shadowsocks"
+		servers := new(XrSsServers)
+		servers.SsServers = append(servers.SsServers, *conf)
+		xrconf.Settings = servers
+		xrconf.Tag = config.SsTag + strconv.Itoa(len(xrSsConfigs)+1)
+		xrSsConfigs = append(xrSsConfigs, *xrconf)
 		ssConfToSave = ssConfToSave + 1
 	}
 	return "" //, 0
@@ -450,6 +434,9 @@ func createWsParams(parMap map[string]string) (wsset XrWsSettings) {
 	}
 	path, ok := parMap["path"]
 	if ok {
+		if path == "%2F" {
+			path = "/"
+		}
 		wsset.Path = path
 	}
 	return wsset
@@ -600,11 +587,8 @@ func getHtml(link Link, wg *sync.WaitGroup) {
 }
 
 func saveParseResult(resFile os.File) bool {
-	if config.SsMultipleOutbounds {
-		parseresult.XrSsConfigs = xrSsConfigs
-	} else {
-		parseresult.SsConfigs = ssConfigs
-	}
+
+	parseresult.XrSsConfigs = xrSsConfigs
 	parseresult.VlessXrConfigs = xrVlConfigs
 	jsondata, err := json.MarshalIndent(parseresult, "", "	") //ssConfigs
 	if err != nil {
@@ -620,55 +604,6 @@ func saveParseResult(resFile os.File) bool {
 		}
 	}
 }
-
-/*
-func getSsConfigs() any {
-	if config.SsMultipleOutbounds {
-		SsXrConfigs := new(SsXrConfigs)
-		SsXrConfigs.Configs = xrSsConfigs
-		return SsXrConfigs
-	} else {
-		SsConfigs := new(SsConfigs)
-		SsConfigs.Configs = ssConfigs
-		return SsConfigs
-	}
-}
-
-func saveSsConfigs(resFile os.File) bool {
-	Configs := getSsConfigs()
-	jsondata, err := json.MarshalIndent(Configs, "", "	") //ssConfigs
-	if err != nil {
-		fmt.Println("json encoding ss conf error", err)
-		return false
-	} else {
-		_, err := resFile.Write(jsondata)
-		if err != nil {
-			fmt.Println("json writning ss conf err", err)
-			return false
-		} else {
-			return true
-		}
-	}
-}
-
-func saveVlConfigs(resFile os.File) bool {
-	VlessXrConfigs := new(VlessXrConfigs)
-	VlessXrConfigs.Configs = xrVlConfigs
-	jsondata, err := json.MarshalIndent(VlessXrConfigs, "", "	") //ssConfigs
-	if err != nil {
-		fmt.Println("json encoding ss conf error", err)
-		return false
-	} else {
-		_, err := resFile.Write(jsondata)
-		if err != nil {
-			fmt.Println("json writning ss conf err", err)
-			return false
-		} else {
-			return true
-		}
-	}
-}
-*/
 
 func main() {
 	restart := false
