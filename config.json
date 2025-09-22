@@ -6,13 +6,11 @@
         "xray"
     ],
     "outputfile":"etc/xraykeyparser/parsingresult.json",
-    "ssmultipleoutbounds":true,
     "ssconfigsectionpath":[
         "outbounds"
     ],
     "sstag":"outss",
     "ssserverseditpos":1,
-    "vlessmultipleoutbounds":true,
     "vlessconfigsectionpath":[
         "outbounds"
     ],
