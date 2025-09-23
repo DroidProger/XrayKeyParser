@@ -3,6 +3,13 @@
 Keys parser for xray core.
 Supports shadowsocks(outline) and most of vless keys - tls, reality, tcp, websocket, grpc
 
+#### Key must look like  
+```
+ss://...........#
+or
+vless://..........#
+```
+
 ### Always backup your worked shadowsocks config.json 
 
 This app is extract xray keys from web pages and telegramm channels
