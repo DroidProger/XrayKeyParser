@@ -544,7 +544,10 @@ func parseDown(link Link, body string) {
 								decodeSsServerConfig(str)
 								break
 							}
-							// if mask == "vless://"
+							if mask == "vless://" {
+								decodeVlessServerConfig(str)
+								break
+							}
 						}
 						c++
 					}
