@@ -1,16 +1,22 @@
 # XrayKeyParser
 
 Keys parser for xray core.
-Supports shadowsocks(outline) and most of vless keys - tls, reality, tcp, websocket, grpc
+Supports shadowsocks(outline), vmess, trojan and vless keys wiht tls, reality, tcp, websocket, grpc stream types
+
+### since version 1.1 format of config.json changed
 
 #### Key must look like  
 ```
-ss://...........#
+ss://...........# (ss://........? outline format)
 or
 vless://..........#
+or
+vmess://........
+or
+trojan://.......#
 ```
 
-### Always backup your worked shadowsocks config.json 
+### Always backup your worked xray config.json 
 
 This app is extract xray keys from web pages and telegramm channels
 To run it type in terminal "path_to_app" "path_to_config_file"
@@ -55,30 +61,22 @@ If xray-core is running as a service, this section may look like this.
 Results of parsing is save to this file.
 
 ```
-"ssconfigsectionpath":[
+"configsectionpath":[
         "outbounds"
     ],
 ```
-Section path for shadowsocks outbound connections in xray config file, where servers will be added.
+Section path for outbound connections in xray config file, where servers will be added.
 
 ```
-"ssserverseditpos":1,
+"serverseditpos":1,
 ```
-Position from which shadowsocks outbound connections will be edited.
+Position from which outbound connections will be edited.
 
 ```
-"sstag":"outss"
+"tag":"outss"
 ```
-Tag for shadowsocks outbounds connection
+Tag for outbounds connection
 
-```
-"vlessconfigsectionpath":[
-        "outbounds"
-    ],
-"vlessserverseditpos":1,
-"vlesstag":"outvless"
-```
-Same parametrs for vless outbound connections
 ```
 "links":[
         {
