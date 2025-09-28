@@ -6,16 +6,11 @@
         "xray"
     ],
     "outputfile":"etc/xraykeyparser/parsingresult.json",
-    "ssconfigsectionpath":[
+    "configsectionpath":[
         "outbounds"
     ],
-    "sstag":"outss",
-    "ssserverseditpos":1,
-    "vlessconfigsectionpath":[
-        "outbounds"
-    ],
-    "vlesstag":"outvless",
-    "vlessserverseditpos":1,
+    "tag":"outss",
+    "serverseditpos":1,
     "links":[
         {
             "url":"https://t.me/some_channel",
