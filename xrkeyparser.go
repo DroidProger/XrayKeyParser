@@ -238,11 +238,8 @@ func createRealityParams(parMap map[string]string) (realset XrRealitySettings) {
 	if ok {
 		realset.ShortId = sid
 	}
-	spx,ok := parMap["spx"]
+	spx, ok := parMap["spx"]
 	if ok {
-		if spx == "%2F" {
-			spx = "/"
-		}
 		realset.SpiderX = spx
 	}
 	return realset
@@ -258,6 +255,7 @@ func createWsParams(parMap map[string]string) (wsset XrWsSettings) {
 		if path == "%2F" {
 			path = "/"
 		}
+		// if v2fly config
 		wsset.Path = path
 	}
 	return wsset
