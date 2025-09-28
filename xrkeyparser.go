@@ -2,7 +2,7 @@ package main
 
 import (
 	"bytes"
-	"encoding/base64"
+	//"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,21 +10,26 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"strconv"
-	"strings"
+
+	//"strconv"
+	//"strings"
 	"sync"
 )
 
 var config Config
 var linksCount int
-var ssConfigs []XrSsServerConf
+
 var xrSsConfigs []XrayConf
 var xrVlConfigs []XrayConf
+var xrVmConfigs []XrayConf
+var xrTrConfigs []XrayConf
 var parseresult ParseResult
 
-// var rawConf []byte
+var confToSave int = 0
 var ssConfToSave int = 0
 var vlessConfToSave int = 0
+var vmessConfToSave int = 0
+var trojanConfToSave int = 0
 
 type Link struct {
 	Url           string
@@ -34,27 +39,34 @@ type Link struct {
 }
 
 type Config struct {
-	XrConfigFile        string
-	XrPath              string
-	XrRestartCommand    []string
-	SsConfigSectionPath []string
-	SsServersEditPos    int
+	XrConfigFile      string
+	XrPath            string
+	XrRestartCommand  []string
+	ConfigSectionPath []string
+	ServersEditPos    int
+	Tag               string
+	//SsConfigSectionPath []string
+	//SsServersEditPos    int
 	//SsModeDefault       string
 	//SsTimeOutDefault    int32
-	SsTag                  string
-	SsMultipleOutbounds    bool
-	VlessConfigSectionPath []string
-	VlessServersEditPos    int
-	VlessMultipleOutbounds bool
-	VlessTag               string
-	OutputFile             string
-	Links                  []Link
+	//SsTag string
+	//SsMultipleOutbounds    bool
+	//VlessConfigSectionPath []string
+	//VlessServersEditPos    int
+	//VlessMultipleOutbounds bool
+	//VlessTag               string
+	//VmessConfigSectionPath []string
+	//VmessServersEditPos    int
+	//VmessTag               string
+	OutputFile string
+	Links      []Link
 }
 
 type ParseResult struct {
-	SsConfigs      []XrSsServerConf `json:"ss,omitzero"`
-	XrSsConfigs    []XrayConf       `json:"xrss,omitzero"`
-	VlessXrConfigs []XrayConf       `json:"xrvless,omitzero"`
+	XrSsConfigs     []XrayConf `json:"xrss,omitzero"`
+	VlessXrConfigs  []XrayConf `json:"xrvless,omitzero"`
+	VmessXrConfigs  []XrayConf `json:"xrvmess,omitzero"`
+	TrojanXrConfigs []XrayConf `json:"xrtrojan,omitzero"`
 }
 
 type XrayConf struct {
@@ -62,34 +74,6 @@ type XrayConf struct {
 	Settings  any              `json:"settings"` //XrSsServerConf
 	StreamSet XrStreamSettings `json:"streamSettings,omitzero"`
 	Tag       string           `json:"tag"`
-}
-
-type XrSsServers struct {
-	SsServers []XrSsServerConf `json:"servers"`
-}
-
-type XrSsServerConf struct {
-	Address  string `json:"address"`
-	Port     int    `json:"port"`
-	Method   string `json:"method"`
-	Password string `json:"password"`
-	UoT      bool   `json:"uot,omitempty"`
-}
-type XrVnextServerConfig struct {
-	Vnext []XrVlessServerrConfig `json:"vnext"`
-}
-
-type XrVlessServerrConfig struct {
-	Address string      `json:"address"`
-	Port    int         `json:"port"`
-	Users   []VlessUser `json:"users"`
-}
-
-type VlessUser struct {
-	Id         string `json:"id"`
-	Encryption string `json:"encryption"`
-	Flow       string `json:"flow,omitempty"`
-	Level      int    `json:"level,omitempty"`
 }
 
 type XrStreamSettings struct {
@@ -198,177 +182,6 @@ type LimitFallbackDownload struct {
 	BurstBytesPerSec int `json:"burstBytesPerSec,omitempty"`
 }
 
-func decodeSsServerConfig(str string) {
-	var datastr string
-	index := strings.IndexByte(str, '@')
-	if index == -1 { // fully encoded string
-		data, err := base64.StdEncoding.DecodeString(str)
-		if err != nil {
-			fmt.Println("error:", err)
-			return
-		}
-		datastr = string(data[:])
-	} else { // encoded only method:password
-		shortstr := str[:index]
-		data, err := base64.StdEncoding.DecodeString(shortstr)
-		if err != nil {
-			fmt.Println("error:", err)
-			return
-		}
-		datastr = string(data[:]) + str[index:]
-	}
-	errstr := createSsServerConfig(datastr)
-	if errstr != "" {
-		fmt.Println(errstr)
-	}
-}
-
-func createSsServerConfig(str string) (errstr string) { //, errcode int
-	var index int
-	ind := strings.IndexByte(str, '@')
-	if ind == -1 {
-		errString := "Invalid format of string " + str
-		return errString //, 1
-	} else {
-		mpstr := str[:ind]
-		conf := new(XrSsServerConf)
-		index = strings.IndexByte(mpstr, ':')
-		if index == -1 {
-			errString := "Invalid format of string " + mpstr
-			return errString //, 2
-		} else {
-			conf.Method = mpstr[:index]
-			conf.Password = mpstr[index+1:]
-		}
-		spstr := str[ind+1:]
-		// find '?'
-		indx := strings.IndexByte(spstr, '/')
-		if indx != -1 {
-			spstr = spstr[:indx]
-		} else {
-			indx := strings.IndexByte(spstr, '?')
-			if indx != -1 {
-				spstr = spstr[:indx]
-			}
-		}
-		index = strings.IndexByte(spstr, ':')
-		if index == -1 {
-			errString := "Invalid format of string " + spstr
-			return errString //, 3
-		} else {
-			conf.Address = spstr[:index]
-			i, err := strconv.Atoi(spstr[index+1:])
-			if err != nil {
-				errString := "Invalid format of port " + spstr
-				return errString //, 4
-			}
-			conf.Port = i
-		}
-		xrconf := new(XrayConf)
-		xrconf.Protocol = "shadowsocks"
-		servers := new(XrSsServers)
-		servers.SsServers = append(servers.SsServers, *conf)
-		xrconf.Settings = servers
-		xrconf.Tag = config.SsTag + strconv.Itoa(len(xrSsConfigs)+1)
-		xrSsConfigs = append(xrSsConfigs, *xrconf)
-		ssConfToSave = ssConfToSave + 1
-	}
-	return "" //, 0
-}
-
-func decodeVlessServerConfig(str string) {
-	var uid_ser string
-	var params string
-	index := strings.IndexByte(str, '?')
-	if index == -1 { // no params
-		index = strings.IndexByte(str, '@')
-		if index == -1 {
-			fmt.Println("Can not decode config")
-			return
-		} else {
-			uid_ser = str
-			params = ""
-		}
-	} else {
-		uid_ser = str[:index]
-		params = str[index+1:]
-	}
-	createVlessServerConfig(uid_ser, params)
-}
-
-func createVlessServerConfig(uid_ser string, params string) (errstr string) {
-	//var index int
-	ind := strings.IndexByte(uid_ser, '@')
-	if ind == -1 {
-		errString := "Invalid format of string " + uid_ser
-		return errString //, 1
-	} else {
-		conf := new(XrVlessServerrConfig)
-		uid := uid_ser[:ind]
-		ser := uid_ser[ind+1:]
-		portInd := strings.IndexByte(ser, ':')
-		conf.Address = ser[:portInd]
-		i, err := strconv.Atoi(ser[portInd+1:])
-		if err != nil {
-			errString := "Invalid format of port " + ser
-			return errString //, 4
-		}
-		conf.Port = i
-		user := new(VlessUser)
-		user.Id = uid
-		user.Encryption = "none"
-		streamSettings := new(XrStreamSettings)
-		if len(params) > 0 {
-			paramsMap := createParamsMap(params)
-			netType, ok := paramsMap["type"]
-			if ok {
-				streamSettings.Network = netType
-				switch netType {
-				case "tcp":
-					tcppar := createTcpParam(paramsMap)
-					streamSettings.TcpSettings = tcppar
-				case "ws":
-					wspar := createWsParams(paramsMap)
-					streamSettings.WsSettings = wspar
-				case "grpc":
-					grpspar := createGrpcParams(paramsMap)
-					streamSettings.GrpcSettings = grpspar
-				case "xhttp":
-					//
-				}
-			}
-			sec, ok := paramsMap["security"]
-			if ok {
-				streamSettings.Security = sec
-				switch sec {
-				case "tls":
-					tlsset := createTlsParams(paramsMap)
-					streamSettings.TlsSettings = tlsset
-				case "reality":
-					realset := createRealityParams(paramsMap)
-					streamSettings.RealitySettings = realset
-					flow, ok := paramsMap["flow"]
-					if ok {
-						user.Flow = flow
-					}
-				}
-			}
-		}
-
-		conf.Users = append(conf.Users, *user)
-		xrconf := new(XrayConf)
-		xrconf.Protocol = "vless"
-		servers := new(XrVnextServerConfig)
-		servers.Vnext = append(servers.Vnext, *conf)
-		xrconf.Settings = servers
-		xrconf.StreamSet = *streamSettings
-		xrconf.Tag = config.VlessTag + strconv.Itoa(len(xrVlConfigs)+1)
-		xrVlConfigs = append(xrVlConfigs, *xrconf)
-		vlessConfToSave = vlessConfToSave + 1
-	}
-	return ""
-}
-
 func createParamsMap(str string) map[string]string {
 	paramsMap := make(map[string]string)
 	lenStr := len(str)
@@ -402,6 +215,7 @@ func createTlsParams(parMap map[string]string) (tlsset XrTlsSettings) {
 	}
 	alpn, ok := parMap["alpn"]
 	if ok {
+
 		tlsset.Alpn = append(tlsset.Alpn, alpn)
 	}
 	return tlsset
@@ -499,7 +313,7 @@ func parseUp(link Link, body string) {
 				if mask == _mask {
 					c := i + lm
 					for c <= lastPos {
-						if body[c] == '#' { // || body[c] == '?'
+						if body[c] == '#' || body[c] == ' ' || body[c] == '<' || body[c] == '\\' { //
 							str := body[i+lm : c]
 							if mask == "ss://" {
 								decodeSsServerConfig(str)
@@ -507,6 +321,14 @@ func parseUp(link Link, body string) {
 							}
 							if mask == "vless://" {
 								decodeVlessServerConfig(str)
+								break
+							}
+							if mask == "vmess://" {
+								decodeVmessServerConfig(str)
+								break
+							}
+							if mask == "trojan://" {
+								decodeTrojanServerConfig(str)
 								break
 							}
 						}
@@ -538,7 +360,7 @@ func parseDown(link Link, body string) {
 				if mask == _mask {
 					c := i + lm
 					for c <= lastPos {
-						if body[c] == '#' { // || body[c] == '?'
+						if body[c] == '#' || body[c] == ' ' || body[c] == '<' || body[c] == '\\' { //
 							str := body[i+lm : c]
 							if mask == "ss://" {
 								decodeSsServerConfig(str)
@@ -548,12 +370,19 @@ func parseDown(link Link, body string) {
 								decodeVlessServerConfig(str)
 								break
 							}
+							if mask == "vmess://" {
+								decodeVmessServerConfig(str)
+								break
+							}
+							if mask == "trojan://" {
+								decodeTrojanServerConfig(str)
+								break
+							}
 						}
 						c++
 					}
 					count = count - 1
 					i = c
-					//lastPos = i
 				}
 			}
 		}
@@ -590,9 +419,10 @@ func getHtml(link Link, wg *sync.WaitGroup) {
 }
 
 func saveParseResult(resFile os.File) bool {
-
 	parseresult.XrSsConfigs = xrSsConfigs
 	parseresult.VlessXrConfigs = xrVlConfigs
+	parseresult.VmessXrConfigs = xrVmConfigs
+	parseresult.TrojanXrConfigs = xrTrConfigs
 	jsondata, err := json.MarshalIndent(parseresult, "", "	") //ssConfigs
 	if err != nil {
 		fmt.Println("json encoding conf error", err)
@@ -647,8 +477,46 @@ func main() {
 	}
 	waitgroup.Wait()
 	saveRes := saveParseResult(*resultFile)
-	if ssConfToSave > 0 {
-		if saveRes { //saveSsConfigs(*resultFile)
+	// --------
+	if saveRes {
+		rawConf, err := os.ReadFile(config.OutputFile) //
+		if err != nil {
+			fmt.Println("Unable to read parsingresult file:", err)
+		} else {
+			var middle []byte
+			if ssConfToSave > 0 {
+				section := ReadSection("xrss", rawConf)
+				middle = bytes.Join([][]byte{middle, section}, nil)
+			}
+			if vlessConfToSave > 0 {
+				section := ReadSection("xrvless", rawConf)
+				if len(middle) > 0 {
+					middle = append(middle, ',')
+				}
+				middle = bytes.Join([][]byte{middle, section}, nil)
+			}
+			if vmessConfToSave > 0 {
+				section := ReadSection("xrvmess", rawConf)
+				if len(middle) > 0 {
+					middle = append(middle, ',')
+				}
+				middle = bytes.Join([][]byte{middle, section}, nil)
+			}
+			if trojanConfToSave > 0 {
+				section := ReadSection("xrtrojan", rawConf)
+				if len(middle) > 0 {
+					middle = append(middle, ',')
+				}
+				middle = bytes.Join([][]byte{middle, section}, nil)
+			}
+			if len(middle) > 0 && setConfigs(config.XrConfigFile, middle, config.ServersEditPos) {
+				restart = true
+			}
+		}
+	}
+	// --------
+	/*if ssConfToSave > 0 {
+		if saveRes {
 			rawSsConf, err := os.ReadFile(config.OutputFile) //
 			if err != nil {
 				fmt.Println("Unable to read parsingresult file:", err)
@@ -662,7 +530,7 @@ func main() {
 		}
 	}
 	if vlessConfToSave > 0 {
-		if saveRes { //saveVlConfigs(*resultFile)
+		if saveRes {
 			rawVlConf, err := os.ReadFile(config.OutputFile) //
 			if err != nil {
 				fmt.Println("Unable to read parsingresult file:", err)
@@ -675,6 +543,9 @@ func main() {
 			}
 		}
 	}
+	if vmessConfToSave > 0 {
+
+	}*/
 	if restart {
 		restartService()
 	}
@@ -696,7 +567,47 @@ func restartService() {
 	}
 }
 
-func setSsServiceConfig(path string, middle []byte) bool {
+func setConfigs(path string, middle []byte, editpos int) bool {
+	if fileExists(path) {
+		file, err := os.OpenFile(path, os.O_CREATE|os.O_RDWR, os.ModePerm)
+		if err != nil { // если возникла ошибка
+			fmt.Println("Unable to open file:", err)
+			return false
+		}
+		defer file.Close()
+		data, err := os.ReadFile(path)
+		if err != nil {
+			fmt.Println("Unable to read xray config file:", err)
+			return false
+		}
+		secPos := findSection(data, config.ConfigSectionPath)
+		res, startPosToEdit, endPosToEdit := findPosToEdit(data, secPos, editpos)
+		if res {
+			first := data[:startPosToEdit+1]
+			if editpos > 0 {
+				first = append(first, ',')
+			}
+			last := data[endPosToEdit:]
+			newdata := bytes.Join([][]byte{first, middle, last}, nil) //make([]byte, 0, len(first)+len(ssConfigs)+len(last))
+
+			_, writeerr := file.Write(newdata) //os.WriteFile(path, newdata, perm)
+			if writeerr != nil {
+				fmt.Println("Unable to write config file:", writeerr)
+				return false
+			}
+			truncerr := file.Truncate(int64(len(newdata)))
+			if truncerr != nil {
+				fmt.Println("Unable to set size of config file:", truncerr)
+				return false
+			}
+		}
+	} else {
+		return false
+	}
+	return true
+}
+
+/*func setSsServiceConfig(path string, middle []byte) bool {
 	if fileExists(path) {
 		file, err := os.OpenFile(path, os.O_CREATE|os.O_RDWR, os.ModePerm)
 		if err != nil { // если возникла ошибка
@@ -778,7 +689,7 @@ func setVlServiceConfig(path string, middle []byte) bool {
 		return false
 	}
 	return true
-}
+}*/
 
 func ReadSection(name string, data []byte) (res []byte) {
 	datalen := len(data)
@@ -789,7 +700,6 @@ func ReadSection(name string, data []byte) (res []byte) {
 			if _name == name {
 				for j := i + namelen; j < datalen; j++ {
 					if data[j] == '[' {
-						//{ // start array
 						endpos := findTokenEnd(data, j+1, datalen, '[', ']')
 						if endpos > 0 {
 							res = data[j+1 : endpos]
@@ -797,7 +707,6 @@ func ReadSection(name string, data []byte) (res []byte) {
 						} else {
 							return nil
 						}
-						//}
 					}
 				}
 			}
