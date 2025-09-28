@@ -240,6 +240,9 @@ func createRealityParams(parMap map[string]string) (realset XrRealitySettings) {
 	}
 	spx, ok := parMap["spx"]
 	if ok {
+		if spx == "%2F" {
+			spx = "/"
+		}
 		realset.SpiderX = spx
 	}
 	return realset
