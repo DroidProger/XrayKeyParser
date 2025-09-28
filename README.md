@@ -3,7 +3,7 @@
 Keys parser for xray core.
 Supports shadowsocks(outline), vmess, trojan and vless keys wiht tls, reality, tcp, websocket, grpc stream types
 
-### since version 1.1 format of config.json changed
+### since version 1.1 names of some parameters in config.json have been changed
 
 #### Key must look like  
 ```
