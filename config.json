@@ -28,5 +28,8 @@
             "configcount":1,
             "parsetoptobot":false
         }
-    ]
+    ],
+    "ipcheckserver":"https://ipinfo.io/",
+    "ipcheckkey":"country",
+    "ipcheckvalue":"RU"
 }
