@@ -107,4 +107,63 @@ how many configs do you want to extract from this page
 ```
 if true parsing will done from top to bottom. 
 - Use "true" for pages where new information placing at the top, like sites
-- Use "false" for pages where new information placing at the 
+- Use "false" for pages where new information placing at the
+
+The following block of parameters is used to filter ip addresses by country. Because some genius makes servers(for example shadowsocks) in country with powerfull censorship, like Russia
+
+```
+"ipcheckserver"
+```
+Url to check if parsed IP address belongs to a country you don't want to connect to.
+
+```
+"ipcheckkey"
+```
+Key in json response
+```
+"ipcheckvalue"
+```
+Value in json response
+
+It may look like
+```
+ "ipcheckserver":"https://ipinfo.io/",
+ "ipcheckkey":"country",
+ "ipcheckvalue":"RU"
+```
+or
+```
+ "ipcheckserver":"api.2ip.io/",
+ "ipcheckkey":"country",
+ "ipcheckvalue":"Russian Federation"
+```
+I found two servers wich can get simple request and send json response. To check it i used curl
+```
+curl https://ipinfo.io/1.2.3.4
+```
+or
+```
+curl api.2ip.io/1.2.3.4
+```
+In output you can see how it returns country. For example
+```
+curl api.2ip.io/1.2.3.4
+{
+    "ip": "1.2.3.4",
+    "city": "Moscow",
+    "region": "Moscow",
+    "country": "Russian Federation",
+    "code": "RU",
+    "emoji": ""
+    "lat": "",
+    "lon": "",
+    "timezone": "Europe/Moscow",
+    "asn": {
+        "id": "",
+        "name": "",
+        "hosting": false
+    },
+    "signup": "Get more at 2ip.io/free"
+}
+```
+If you know another servers like those two let me know
