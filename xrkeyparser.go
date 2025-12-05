@@ -58,8 +58,11 @@ type Config struct {
 	//VmessConfigSectionPath []string
 	//VmessServersEditPos    int
 	//VmessTag               string
-	OutputFile string
-	Links      []Link
+	OutputFile    string
+	Links         []Link
+	IpCheckServer string
+	IpCheckKey    string
+	IpCheckValue  string
 }
 
 type ParseResult struct {
@@ -320,29 +323,32 @@ func parseUp(link Link, body string) {
 				_mask := body[i : i+lm]
 				if mask == _mask {
 					c := i + lm
+					var added bool
 					for c <= lastPos {
 						if body[c] == '#' || body[c] == ' ' || body[c] == '<' || body[c] == '\\' { //
 							str := body[i+lm : c]
 							if mask == "ss://" {
-								decodeSsServerConfig(str)
+								added = decodeSsServerConfig(str)
 								break
 							}
 							if mask == "vless://" {
-								decodeVlessServerConfig(str)
+								added = decodeVlessServerConfig(str)
 								break
 							}
 							if mask == "vmess://" {
-								decodeVmessServerConfig(str)
+								added = decodeVmessServerConfig(str)
 								break
 							}
 							if mask == "trojan://" {
-								decodeTrojanServerConfig(str)
+								added = decodeTrojanServerConfig(str)
 								break
 							}
 						}
 						c++
 					}
-					count = count - 1
+					if added {
+						count = count - 1
+					}
 					i = i - 10
 					lastPos = i
 				}
@@ -367,29 +373,32 @@ func parseDown(link Link, body string) {
 				_mask := body[i : i+lm]
 				if mask == _mask {
 					c := i + lm
+					var added bool
 					for c <= lastPos {
 						if body[c] == '#' || body[c] == ' ' || body[c] == '<' || body[c] == '\\' { //
 							str := body[i+lm : c]
 							if mask == "ss://" {
-								decodeSsServerConfig(str)
+								added = decodeSsServerConfig(str)
 								break
 							}
 							if mask == "vless://" {
-								decodeVlessServerConfig(str)
+								added = decodeVlessServerConfig(str)
 								break
 							}
 							if mask == "vmess://" {
-								decodeVmessServerConfig(str)
+								added = decodeVmessServerConfig(str)
 								break
 							}
 							if mask == "trojan://" {
-								decodeTrojanServerConfig(str)
+								added = decodeTrojanServerConfig(str)
 								break
 							}
 						}
 						c++
 					}
-					count = count - 1
+					if added {
+						count = count - 1
+					}
 					i = c
 				}
 			}

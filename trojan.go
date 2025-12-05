@@ -16,7 +16,7 @@ type TrojanServerConfig struct {
 	Password string `json:"password"`
 }
 
-func decodeTrojanServerConfig(str string) {
+func decodeTrojanServerConfig(str string) bool {
 	var ser_passw string
 	var params string
 	index := strings.IndexByte(str, '?')
@@ -24,7 +24,7 @@ func decodeTrojanServerConfig(str string) {
 		index = strings.IndexByte(str, '@')
 		if index == -1 {
 			fmt.Println("Can not decode config")
-			return
+			return false
 		} else {
 			ser_passw = str
 			params = ""
@@ -33,7 +33,12 @@ func decodeTrojanServerConfig(str string) {
 		ser_passw = str[:index]
 		params = str[index+1:]
 	}
-	createTrojanServerConfig(ser_passw, params)
+	errstr := createTrojanServerConfig(ser_passw, params)
+	if errstr != "" {
+		fmt.Println(errstr)
+		return false
+	}
+	return true
 }
 
 func createTrojanServerConfig(ser_passw string, params string) (errstr string) {
@@ -48,6 +53,11 @@ func createTrojanServerConfig(ser_passw string, params string) (errstr string) {
 		ser := ser_passw[ind+1:]
 		portInd := strings.IndexByte(ser, ':')
 		conf.Address = ser[:portInd]
+		//check ip
+		if !isIpValid(config.IpCheckServer, conf.Address, config.IpCheckKey, config.IpCheckValue) {
+			return "Ip is invalid"
+		}
+		//
 		i, err := strconv.Atoi(ser[portInd+1:])
 		if err != nil {
 			errString := "Invalid format of port " + ser

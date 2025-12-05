@@ -19,14 +19,14 @@ type SsServerConf struct {
 	UoT      bool   `json:"uot,omitempty"`
 }
 
-func decodeSsServerConfig(str string) {
+func decodeSsServerConfig(str string) bool {
 	var datastr string
 	index := strings.IndexByte(str, '@')
 	if index == -1 { // fully encoded string
 		data, err := base64.StdEncoding.DecodeString(str)
 		if err != nil {
 			fmt.Println("error:", err)
-			return
+			return false
 		}
 		datastr = string(data[:])
 	} else { // encoded only method:password
@@ -34,14 +34,16 @@ func decodeSsServerConfig(str string) {
 		data, err := base64.StdEncoding.DecodeString(shortstr)
 		if err != nil {
 			fmt.Println("error:", err)
-			return
+			return false
 		}
 		datastr = string(data[:]) + str[index:]
 	}
 	errstr := createSsServerConfig(datastr)
 	if errstr != "" {
 		fmt.Println(errstr)
+		return false
 	}
+	return true
 }
 
 func createSsServerConfig(str string) (errstr string) {
@@ -78,6 +80,11 @@ func createSsServerConfig(str string) (errstr string) {
 			return errString //, 3
 		} else {
 			conf.Address = spstr[:index]
+			//check ip
+			if !isIpValid(config.IpCheckServer, conf.Address, config.IpCheckKey, config.IpCheckValue) {
+				return "Ip is invalid"
+			}
+			//
 			i, err := strconv.Atoi(spstr[index+1:])
 			if err != nil {
 				errString := "Invalid format of port " + spstr

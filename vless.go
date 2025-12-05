@@ -23,7 +23,7 @@ type VlessUser struct {
 	Level      int    `json:"level,omitempty"`
 }
 
-func decodeVlessServerConfig(str string) {
+func decodeVlessServerConfig(str string) bool {
 	var uid_ser string
 	var params string
 	index := strings.IndexByte(str, '?')
@@ -31,7 +31,7 @@ func decodeVlessServerConfig(str string) {
 		index = strings.IndexByte(str, '@')
 		if index == -1 {
 			fmt.Println("Can not decode config")
-			return
+			return false
 		} else {
 			uid_ser = str
 			params = ""
@@ -40,7 +40,12 @@ func decodeVlessServerConfig(str string) {
 		uid_ser = str[:index]
 		params = str[index+1:]
 	}
-	createVlessServerConfig(uid_ser, params)
+	errstr := createVlessServerConfig(uid_ser, params)
+	if errstr != "" {
+		fmt.Println(errstr)
+		return false
+	}
+	return true
 }
 
 func createVlessServerConfig(uid_ser string, params string) (errstr string) {
@@ -55,6 +60,11 @@ func createVlessServerConfig(uid_ser string, params string) (errstr string) {
 		ser := uid_ser[ind+1:]
 		portInd := strings.IndexByte(ser, ':')
 		conf.Address = ser[:portInd]
+		//check ip
+		if !isIpValid(config.IpCheckServer, conf.Address, config.IpCheckKey, config.IpCheckValue) {
+			return "Ip is invalid"
+		}
+		//
 		i, err := strconv.Atoi(ser[portInd+1:])
 		if err != nil {
 			errString := "Invalid format of port " + ser

@@ -24,17 +24,19 @@ type VmessUser struct {
 	Level    int    `json:"level,omitempty"`
 }
 
-func decodeVmessServerConfig(str string) {
+func decodeVmessServerConfig(str string) bool {
 	data, err := base64.StdEncoding.DecodeString(str)
 	if err != nil {
 		fmt.Println("error:", err)
-		return
+		return false
 	}
 	datastr := string(data[:])
 	errstr := createVmessServerConfig(datastr)
 	if errstr != "" {
 		fmt.Println(errstr)
+		return false
 	}
+	return true
 }
 
 func createVmessServerConfig(str string) (errstr string) {
@@ -47,6 +49,11 @@ func createVmessServerConfig(str string) (errstr string) {
 	if len(params) > 0 {
 		conf := new(VmessServerConfig)
 		conf.Address = params["add"].(string)
+		//check ip
+		if !isIpValid(config.IpCheckServer, conf.Address, config.IpCheckKey, config.IpCheckValue) {
+			return "Ip is invalid"
+		}
+		//
 		switch t := params["port"].(type) {
 		case float64:
 			conf.Port = int(t)
