@@ -109,7 +109,7 @@ if true parsing will done from top to bottom.
 - Use "true" for pages where new information placing at the top, like sites
 - Use "false" for pages where new information placing at the
 
-The following block of parameters is used to filter ip addresses by country. Because some genius makes servers(for example shadowsocks) in country with powerfull censorship, like Russia
+The following block of parameters is used to filter ip addresses by country. Because some genius makes servers(for example shadowsocks) in country with powerfull censorship, like Russia. You can exclude this ip from use if it belongs to a specific country.
 
 ```
 "ipcheckserver"
