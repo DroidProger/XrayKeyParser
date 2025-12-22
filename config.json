@@ -31,5 +31,9 @@
     ],
     "ipcheckserver":"https://ipinfo.io/",
     "ipcheckkey":"country",
-    "ipcheckvalue":"RU"
+    "ipcheckblacklist":true,
+    "ipcheckvalue":[
+        "RU",
+        "CN"
+    ]
 }
