@@ -45,24 +45,12 @@ type Config struct {
 	ConfigSectionPath []string
 	ServersEditPos    int
 	Tag               string
-	//SsConfigSectionPath []string
-	//SsServersEditPos    int
-	//SsModeDefault       string
-	//SsTimeOutDefault    int32
-	//SsTag string
-	//SsMultipleOutbounds    bool
-	//VlessConfigSectionPath []string
-	//VlessServersEditPos    int
-	//VlessMultipleOutbounds bool
-	//VlessTag               string
-	//VmessConfigSectionPath []string
-	//VmessServersEditPos    int
-	//VmessTag               string
-	OutputFile    string
-	Links         []Link
-	IpCheckServer string
-	IpCheckKey    string
-	IpCheckValue  string
+	OutputFile        string
+	Links             []Link
+	IpCheckServer     string
+	IpCheckKey        string
+	IpCheckBlackList  bool
+	IpCheckValue      []string
 }
 
 type ParseResult struct {

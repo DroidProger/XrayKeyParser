@@ -81,7 +81,8 @@ func createSsServerConfig(str string) (errstr string) {
 		} else {
 			conf.Address = spstr[:index]
 			//check ip
-			if !isIpValid(config.IpCheckServer, conf.Address, config.IpCheckKey, config.IpCheckValue) {
+			if !isIpValid(config.IpCheckServer, conf.Address, config.IpCheckKey,
+				config.IpCheckValue, config.IpCheckBlackList) {
 				return "Ip is invalid"
 			}
 			//

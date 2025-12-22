@@ -61,7 +61,8 @@ func createVlessServerConfig(uid_ser string, params string) (errstr string) {
 		portInd := strings.IndexByte(ser, ':')
 		conf.Address = ser[:portInd]
 		//check ip
-		if !isIpValid(config.IpCheckServer, conf.Address, config.IpCheckKey, config.IpCheckValue) {
+		if !isIpValid(config.IpCheckServer, conf.Address, config.IpCheckKey,
+			config.IpCheckValue, config.IpCheckBlackList) {
 			return "Ip is invalid"
 		}
 		//

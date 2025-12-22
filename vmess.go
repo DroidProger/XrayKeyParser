@@ -50,7 +50,8 @@ func createVmessServerConfig(str string) (errstr string) {
 		conf := new(VmessServerConfig)
 		conf.Address = params["add"].(string)
 		//check ip
-		if !isIpValid(config.IpCheckServer, conf.Address, config.IpCheckKey, config.IpCheckValue) {
+		if !isIpValid(config.IpCheckServer, conf.Address, config.IpCheckKey,
+			config.IpCheckValue, config.IpCheckBlackList) {
 			return "Ip is invalid"
 		}
 		//
