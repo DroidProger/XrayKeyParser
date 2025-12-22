@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func isIpValid(site string, ip string, keyName string, value string) bool {
+func isIpValid(site string, ip string, keyName string, value []string, blacklist bool) bool {
 	request := strings.Builder{}
 	request.WriteString(site)
 	request.WriteString(ip)
@@ -26,16 +26,27 @@ func isIpValid(site string, ip string, keyName string, value string) bool {
 			var answer map[string]interface{}
 			err := json.Unmarshal([]byte(body), &answer)
 			if err != nil {
-				fmt.Println("Ошибка при разборе JSON:", err)
+				fmt.Println("Error while unmarshalling JSON:", err)
 				return false
 			}
 			for key, val := range answer {
 				if key == keyName {
-					if val == value {
-						return false
-					} else {
+					j := len(value)
+					for i := range j {
+						if val == value[i] {
+							if blacklist {
+								return false
+							} else {
+								fmt.Println("Country ", val)
+								return true
+							}
+						}
+					}
+					if blacklist {
 						fmt.Println("Country ", val)
 						return true
+					} else {
+						return false
 					}
 				}
 			}
