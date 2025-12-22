@@ -121,22 +121,45 @@ Url to check if parsed IP address belongs to a country you don't want to connect
 ```
 Key in json response
 ```
+"ipcheckblacklist"
+```
+Mode for ipchecker - if "true" it blocks ip addresses when they match, if "false" it add only ip of given country
+```
 "ipcheckvalue"
 ```
-Value in json response
+Array of values in json response
 
 It may look like
 ```
  "ipcheckserver":"https://ipinfo.io/",
  "ipcheckkey":"country",
- "ipcheckvalue":"RU"
+ "ipcheckblacklist":true,
+ "ipcheckvalue":[
+    "RU",
+    "CN"
+  ]
 ```
 or
 ```
  "ipcheckserver":"api.2ip.io/",
  "ipcheckkey":"country",
- "ipcheckvalue":"Russian Federation"
+ "ipcheckblacklist":true,
+ "ipcheckvalue":[
+    "Russian Federation",
+    "China"
+  ]
 ```
+or whitelist mode
+```
+ "ipcheckserver":"https://ipinfo.io/",
+ "ipcheckkey":"country",
+ "ipcheckblacklist":false,
+ "ipcheckvalue":[
+    "NL",
+    "FR"
+  ]
+```
+--------
 I found two servers wich can get simple request and send json response. To check it i used curl
 ```
 curl https://ipinfo.io/1.2.3.4
