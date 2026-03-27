@@ -192,7 +192,11 @@ func createParamsMap(str string) map[string]string {
 					break
 				}
 			}
-			i = i + 5 // lenght of "&amp;"
+			if i <= lenStr-1 && str[i+1] == 'a' && str[i+2] == 'm' && str[i+3] == 'p' {
+				i = i + 5 // lenght of "&amp;"
+			} else {
+				i++
+			}
 			j = i
 		}
 	}
@@ -305,7 +309,7 @@ func parseUp(link Link, body string) {
 	i := lastPos - 10
 	for i >= 0 {
 		for j := 0; j < maskLen; j++ {
-			mask := link.Mask[0]
+			mask := link.Mask[j]
 			if body[i] == mask[0] {
 				lm := len(mask)
 				_mask := body[i : i+lm]
@@ -355,7 +359,7 @@ func parseDown(link Link, body string) {
 	maskLen := len(link.Mask)
 	for i := 0; i < lastPos; i++ {
 		for j := 0; j < maskLen; j++ {
-			mask := link.Mask[0]
+			mask := link.Mask[j]
 			if body[i] == mask[0] {
 				lm := len(mask)
 				_mask := body[i : i+lm]
@@ -564,10 +568,12 @@ func restartService() {
 	} else { // restart ss
 		//env := os.Environ()
 		cmd := exec.Command(xrbin, config.XrRestartCommand...)
-		cmd.Stdout = os.Stdout
-		err := cmd.Start() //syscall.Exec(ssbin,config.SsRestartCommand,env)
+		//cmd.Stdout = os.Stdout
+		output, err := cmd.Output() //Start() //syscall.Exec(ssbin,config.SsRestartCommand,env)
 		if err != nil {
 			fmt.Println("Unable to restart xray:", err)
+		} else {
+			fmt.Println(string(output))
 		}
 	}
 }
