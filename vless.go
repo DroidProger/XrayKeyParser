@@ -109,6 +109,9 @@ func createVlessServerConfig(uid_ser string, params string) (errstr string) {
 					streamSettings.TlsSettings = tlsset
 				case "reality":
 					realset := createRealityParams(paramsMap)
+					if realset.Password == "" || realset.Fingerprint == "" {
+						return "Fingerprin or password has empty value"
+					}
 					streamSettings.RealitySettings = realset
 					flow, ok := paramsMap["flow"]
 					if ok {
