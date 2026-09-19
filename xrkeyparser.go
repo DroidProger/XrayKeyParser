@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	//"encoding/base64"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -32,10 +33,11 @@ var vmessConfToSave int = 0
 var trojanConfToSave int = 0
 
 type Link struct {
-	Url           string
-	Mask          []string
-	ConfigCount   int
-	ParseTopToBot bool
+	IsSubscription bool `default:"false"`
+	Url            string
+	Mask           []string
+	ConfigCount    int
+	ParseTopToBot  bool
 }
 
 type Config struct {
@@ -217,15 +219,15 @@ func createTlsParams(parMap map[string]string) (tlsset XrTlsSettings) {
 }
 
 func createRealityParams(parMap map[string]string) (realset XrRealitySettings) {
-	sname, ok := parMap["sni"]
+	sname, ok := parMap["sni"] //
 	if ok {
 		realset.ServerName = sname
 	}
-	passw, ok := parMap["pbk"]
+	passw, ok := parMap["pbk"] // must be non null or ""
 	if ok {
 		realset.Password = passw
 	}
-	fp, ok := parMap["fp"]
+	fp, ok := parMap["fp"] // must be non null or ""
 	if ok {
 		realset.Fingerprint = fp
 	}
@@ -402,6 +404,7 @@ func parseDown(link Link, body string) {
 }
 
 func parse(link Link, body string) {
+
 	if link.ParseTopToBot {
 		parseDown(link, body)
 	} else {
@@ -420,6 +423,14 @@ func getHtml(link Link, wg *sync.WaitGroup) {
 		if err != nil {
 			fmt.Println("Unable to read html body:", err)
 		} else {
+			if link.IsSubscription {
+				data, err := base64.StdEncoding.DecodeString(string(body[:]))
+				if err != nil {
+					fmt.Println("error:", err)
+					return
+				}
+				body = data
+			}
 			parse(link, string(body))
 		}
 	} else {
