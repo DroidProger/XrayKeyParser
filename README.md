@@ -94,6 +94,15 @@ Tag for outbounds connection
             ],
             "configcount":1,
             "parsetoptobot":true 
+        },
+        { 
+            "url":"https://some_site.com/subscriptions/country/all/?key=7E8E45DD05FDD2E",
+            "isSubscription":true,
+            "mask":[
+                "vless://"
+            ],
+            "configcount":2,
+            "parsetoptobot":true
         }
     ]
 ```
@@ -108,6 +117,10 @@ how many configs do you want to extract from this page
 if true parsing will done from top to bottom. 
 - Use "true" for pages where new information placing at the top, like sites
 - Use "false" for pages where new information placing at the
+```
+  "isSubscription"
+```
+set it to "true" if link is for base64 subscription format, otherwise set it to "false" or do not use
 
 The following block of parameters is used to filter ip addresses by country. Because some genius makes servers(for example shadowsocks) in country with powerfull censorship, like Russia. You can exclude this ip from use if it belongs to a specific country.
 
