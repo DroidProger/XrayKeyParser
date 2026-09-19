@@ -27,6 +27,15 @@
             ],
             "configcount":1,
             "parsetoptobot":false
+        },
+        { 
+            "url":"https://some_site.com/subscriptions/country/all/?key=7E8E45DD05FDD2E",
+            "isSubscription":true,
+            "mask":[
+                "vless://"
+            ],
+            "configcount":2,
+            "parsetoptobot":true
         }
     ],
     "ipcheckserver":"https://ipinfo.io/",
