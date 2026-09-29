@@ -9,7 +9,8 @@
     "configsectionpath":[
         "outbounds"
     ],
-    "tag":"outss",
+    "tag":"out",
+    "pingtimeout": 2,
     "serverseditpos":1,
     "links":[
         {
