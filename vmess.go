@@ -54,6 +54,10 @@ func createVmessServerConfig(str string) (errstr string) {
 			config.IpCheckValue, config.IpCheckBlackList) {
 			return "VM Ip is invalid"
 		}
+		// ping
+		if !ping(conf.Address) {
+			return " Host unreachable"
+		}
 		//
 		switch t := params["port"].(type) {
 		case float64:

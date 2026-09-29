@@ -65,6 +65,10 @@ func createVlessServerConfig(uid_ser string, params string) (errstr string) {
 			config.IpCheckValue, config.IpCheckBlackList) {
 			return "VL Ip is invalid"
 		}
+		// ping
+		if !ping(conf.Address) {
+			return " Host unreachable"
+		}
 		//
 		j := len(ser) - 1
 		if ser[j] == '/' { // outline format

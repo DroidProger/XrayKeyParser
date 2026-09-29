@@ -2,6 +2,8 @@ package main
 
 import (
 	"bytes"
+	"strings"
+
 	//"encoding/base64"
 	"encoding/base64"
 	"encoding/json"
@@ -46,6 +48,7 @@ type Config struct {
 	XrRestartCommand  []string
 	ConfigSectionPath []string
 	ServersEditPos    int
+	PingTimeOut       int
 	Tag               string
 	OutputFile        string
 	Links             []Link
@@ -212,8 +215,16 @@ func createTlsParams(parMap map[string]string) (tlsset XrTlsSettings) {
 	}
 	alpn, ok := parMap["alpn"]
 	if ok {
-
-		tlsset.Alpn = append(tlsset.Alpn, alpn)
+		if strings.Contains(alpn, "%2C") {
+			alpn = strings.ReplaceAll(alpn, "%2C", ",")
+		}
+		for part := range strings.SplitSeq(alpn, ",") {
+			tlsset.Alpn = append(tlsset.Alpn, part)
+		}
+	}
+	fp, ok := parMap["fp"] // must be non null or ""
+	if ok {
+		tlsset.Fingerprint = fp
 	}
 	return tlsset
 }
@@ -237,8 +248,8 @@ func createRealityParams(parMap map[string]string) (realset XrRealitySettings) {
 	}
 	spx, ok := parMap["spx"]
 	if ok {
-		if spx == "%2F" {
-			spx = "/"
+		if strings.Contains(spx, "%2F") {
+			spx = strings.ReplaceAll(spx, "%2F", "/")
 		}
 		realset.SpiderX = spx
 	}
@@ -252,8 +263,8 @@ func createWsParams(parMap map[string]string) (wsset XrWsSettings) {
 	}
 	path, ok := parMap["path"]
 	if ok {
-		if path == "%2F" {
-			path = "/"
+		if strings.Contains(path, "%2F") {
+			path = strings.ReplaceAll(path, "%2F", "/")
 		}
 		// if v2fly config
 		wsset.Path = path
@@ -301,7 +312,9 @@ func readConfig(path string) {
 		fmt.Println("Unable to parse json:", jsonErr)
 		os.Exit(1)
 	}
-
+	if config.PingTimeOut <= 0 {
+		config.PingTimeOut = 2 // set default value
+	}
 }
 
 func parseUp(link Link, body string) {

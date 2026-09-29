@@ -85,6 +85,10 @@ func createSsServerConfig(str string) (errstr string) {
 				config.IpCheckValue, config.IpCheckBlackList) {
 				return "SS Ip is invalid"
 			}
+			// ping
+			if !ping(conf.Address) {
+				return " Host unreachable"
+			}
 			//
 			i, err := strconv.Atoi(spstr[index+1:])
 			if err != nil {

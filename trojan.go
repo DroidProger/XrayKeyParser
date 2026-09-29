@@ -58,6 +58,10 @@ func createTrojanServerConfig(ser_passw string, params string) (errstr string) {
 			config.IpCheckValue, config.IpCheckBlackList) {
 			return "TR Ip is invalid"
 		}
+		// ping
+		if !ping(conf.Address) {
+			return " Host unreachable"
+		}
 		//
 		i, err := strconv.Atoi(ser[portInd+1:])
 		if err != nil {
