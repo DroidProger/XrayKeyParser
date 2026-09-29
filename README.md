@@ -73,10 +73,13 @@ Section path for outbound connections in xray config file, where servers will be
 Position from which outbound connections will be edited.
 
 ```
-"tag":"outss"
+"tag":"out"
 ```
 Tag for outbounds connection
-
+```
+"pingtimeout":int
+```
+Timeout for ping in seconds. Default is 2 sec, if it not set.
 ```
 "links":[
         {
