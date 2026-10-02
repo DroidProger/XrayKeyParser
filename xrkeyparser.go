@@ -377,13 +377,17 @@ func parseDown(link Link, body string) {
 			mask := link.Mask[j]
 			if body[i] == mask[0] {
 				lm := len(mask)
-				_mask := body[i : i+lm]
+				em := i + lm
+				if em > lastPos { //
+					break
+				}
+				_mask := body[i:em]
 				if mask == _mask {
-					c := i + lm
+					c := em //i + lm
 					var added bool
 					for c <= lastPos {
 						if body[c] == '#' || body[c] == ' ' || body[c] == '<' || body[c] == '\\' { //
-							str := body[i+lm : c]
+							str := body[i+lm : c] //
 							if mask == "ss://" {
 								added = decodeSsServerConfig(str)
 								break
@@ -408,6 +412,7 @@ func parseDown(link Link, body string) {
 					}
 					i = c
 				}
+
 			}
 		}
 		if count == 0 {
